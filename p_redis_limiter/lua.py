@@ -86,6 +86,8 @@ for i = 1, num_keys do
     redis.call('HSET', key, 'tokens', tostring(tokens), 'last_refill', tostring(last_refill))
     if ttl_ms > 0 then
         redis.call('PEXPIRE', key, ttl_ms)
+    else
+        redis.call('PERSIST', key)
     end
 end
 

@@ -48,15 +48,13 @@ class Rate:
             raise ValueError(f"requests must be a positive integer > 0, got: {self.requests}")
         if self.window <= 0:
             raise ValueError(f"window must be a positive number > 0, got: {self.window}")
-        if self.ttl is not None and self.ttl <= 0:
-            raise ValueError(f"ttl must be a positive integer if specified, got: {self.ttl}")
+        if self.ttl is not None and self.ttl < -1:
+            raise ValueError(f"ttl must be a positive integer, 0, or -1 (to disable TTL), got: {self.ttl}")
 
     def effective_ttl(self, default_ttl: Optional[int] = None) -> int:
-        """Returns the TTL in seconds to use in Redis."""
-        if self.ttl is not None:
-            return int(self.ttl)
-        if default_ttl is not None:
-            return int(default_ttl)
+        target = self.ttl if self.ttl is not None else default_ttl
+        if target is not None:
+            return 0 if target in (0, -1) else int(target)
         return max(int(math.ceil(self.window * 2)), 60)
 
     @property

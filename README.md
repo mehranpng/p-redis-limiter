@@ -80,6 +80,9 @@ By default, Redis keys expire automatically after `max(window * 2, 60)` seconds.
 # Per rate rule:
 Rate(40, 60, ttl=120)
 
+# Disable TTL (persist in Redis forever):
+Rate(40, 60, ttl=-1)
+
 # Or globally on middleware / limiter:
 RateLimitMiddleware(redis=r, rates=Rate(40, 60), ttl=120)
 ```
