@@ -1,4 +1,3 @@
-# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -20,18 +19,16 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual environments
 .venv/
 env/
 venv/
 ENV/
 
-# Redis / temp test files
 *.sock
 *.log
 dump.rdb
 
-# Pytest / coverage
+tests/
 .pytest_cache/
 .coverage
 htmlcov/
