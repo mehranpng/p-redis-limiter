@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "p-redis-limiter"
-version = "0.1.0"
+version = "0.1.1"
 description = "A fast, atomic, multi-tier Token Bucket rate limiter for Python and FastAPI using Redis."
 readme = "README.md"
 requires-python = ">=3.9"

@@ -5,7 +5,7 @@ Redis token bucket rate limiter for Python and FastAPI.
 ## Installation
 
 ```bash
-pip install git+https://github.com/mehranpng/p-redis-limiter.git
+pip install p-redis-limiter
 ```
 
 ## Usage
