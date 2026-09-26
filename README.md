@@ -84,40 +84,32 @@ Rate(40, 60, ttl=120)
 RateLimitMiddleware(redis=r, rates=Rate(40, 60), ttl=120)
 ```
 
-### 5. Manual IP / Custom Identifier
+### 5. Manual Usage (Specify IP Yourself)
 
-Client IP is detected automatically by default (`CF-Connecting-IP`, `X-Real-IP`, `X-Forwarded-For`, direct IP). You can also pass the IP manually or use a custom identifier:
-
-```python
-# 1. Pass manual IP directly:
-result = limiter.check("1.2.3.4")
-
-# 2. Check request with manual IP override:
-result = limiter.check_request(request, ip="1.2.3.4")
-
-# 3. Custom function in middleware or Depends:
-RateLimitMiddleware(
-    redis=r,
-    rates=Rate(40, 60),
-    identifier=lambda req: req.headers.get("X-User-IP"),
-)
-
-# 4. Or specify custom header name directly:
-RateLimitMiddleware(redis=r, rates=Rate(40, 60), identifier="X-User-IP")
-```
-
-### 6. Standalone Usage (Without FastAPI)
+If you prefer to get the IP yourself, simply pass your IP variable directly:
 
 ```python
-from redis import Redis
 from p_redis_limiter import RateLimiter, Rate
 
-r = Redis(host="localhost", port=6379, decode_responses=True)
-limiter = RateLimiter(r, Rate(10, 60))
+limiter = RateLimiter(r, Rate(5, 60))
 
-result = limiter.check("user_123")
+@app.post("/login")
+def login(request: Request):
+    user_ip = get_my_ip(request)  # your own IP variable
+
+    # Simple boolean check:
+    if not limiter.is_allowed(user_ip):
+        return JSONResponse({"detail": "Too many requests"}, status_code=429)
+
+    return {"ok": True}
+```
+
+Or get full details (`remaining`, `retry_after`):
+
+```python
+result = limiter.check(user_ip)
 if not result.allowed:
-    print(f"Blocked. Retry after {result.retry_after}s")
+    print(f"Blocked! Retry after {result.retry_after}s")
 ```
 
 ## Options
