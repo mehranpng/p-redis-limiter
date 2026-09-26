@@ -24,12 +24,25 @@ from p_redis_limiter.rate import Rate
 
 
 def default_client_ip(request: Request) -> str:
-    """Extract client IP handling reverse proxy headers (X-Forwarded-For)."""
+    cf_ip = request.headers.get("CF-Connecting-IP")
+    if cf_ip:
+        return cf_ip.strip()
+
+    true_client_ip = request.headers.get("True-Client-IP")
+    if true_client_ip:
+        return true_client_ip.strip()
+
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip.strip()
+
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
         return forwarded.split(",")[0].strip()
+
     if request.client and request.client.host:
         return request.client.host
+
     return "127.0.0.1"
 
 
@@ -54,7 +67,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         window: Optional[Union[int, float]] = None,
         prefix: str = "rate",
         ttl: Optional[int] = None,
-        identifier: Optional[Callable[[Request], str]] = None,
+        identifier: Optional[Union[str, Callable[[Request], str]]] = None,
         error_detail: str = "Too many requests",
         status_code: int = 429,
         set_headers: bool = True,
@@ -82,7 +95,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 ttl=ttl,
             )
 
-        self.identifier = identifier or default_client_ip
+        if callable(identifier):
+            self.identifier = identifier
+        elif isinstance(identifier, str):
+            self.identifier = lambda req: req.headers.get(identifier) or default_client_ip(req)
+        else:
+            self.identifier = default_client_ip
         self.error_detail = error_detail
         self.status_code = status_code
         self.set_headers = set_headers

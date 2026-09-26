@@ -212,22 +212,36 @@ class RateLimiter:
         res = await self.check_async(identifier, cost)
         return res.allowed
 
+    def check_request(
+        self, request: Any, ip: Optional[str] = None, cost: int = 1
+    ) -> RateLimitResult:
+        from p_redis_limiter.middleware import default_client_ip
+        ident = ip if ip is not None else default_client_ip(request)
+        return self.check(ident, cost=cost)
+
+    async def check_request_async(
+        self, request: Any, ip: Optional[str] = None, cost: int = 1
+    ) -> RateLimitResult:
+        from p_redis_limiter.middleware import default_client_ip
+        ident = ip if ip is not None else default_client_ip(request)
+        return await self.check_async(ident, cost=cost)
+
     def as_dependency(
         self,
         cost: int = 1,
+        identifier: Optional[Union[str, Callable[[Any], str]]] = None,
         identifier_func: Optional[Callable[[Any], str]] = None,
         error_detail: str = "Too many requests",
     ):
-        """Create a FastAPI/Starlette route dependency.
-
-        Usage:
-            @app.get("/items", dependencies=[Depends(limiter.as_dependency())])
-            def get_items():
-                ...
-        """
         from p_redis_limiter.middleware import default_client_ip
 
-        ident_fn = identifier_func or default_client_ip
+        target_ident = identifier or identifier_func
+        if callable(target_ident):
+            ident_fn = target_ident
+        elif isinstance(target_ident, str):
+            ident_fn = lambda req: req.headers.get(target_ident) or default_client_ip(req)
+        else:
+            ident_fn = default_client_ip
 
         async def _rate_limit_dependency(request: Request):
             ident = ident_fn(request)
