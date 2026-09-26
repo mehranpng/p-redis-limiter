@@ -84,7 +84,29 @@ Rate(40, 60, ttl=120)
 RateLimitMiddleware(redis=r, rates=Rate(40, 60), ttl=120)
 ```
 
-### 5. Standalone Usage (Without FastAPI)
+### 5. Manual IP / Custom Identifier
+
+Client IP is detected automatically by default (`CF-Connecting-IP`, `X-Real-IP`, `X-Forwarded-For`, direct IP). You can also pass the IP manually or use a custom identifier:
+
+```python
+# 1. Pass manual IP directly:
+result = limiter.check("1.2.3.4")
+
+# 2. Check request with manual IP override:
+result = limiter.check_request(request, ip="1.2.3.4")
+
+# 3. Custom function in middleware or Depends:
+RateLimitMiddleware(
+    redis=r,
+    rates=Rate(40, 60),
+    identifier=lambda req: req.headers.get("X-User-IP"),
+)
+
+# 4. Or specify custom header name directly:
+RateLimitMiddleware(redis=r, rates=Rate(40, 60), identifier="X-User-IP")
+```
+
+### 6. Standalone Usage (Without FastAPI)
 
 ```python
 from redis import Redis
