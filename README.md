@@ -120,6 +120,6 @@ if not result.allowed:
 | `rates` | `Rate` / `list` / `str` | Required | Rate rules, e.g. `Rate(40, 60)` or `["5/s", "100/m"]` |
 | `ttl` | `int` | Auto | Custom Redis key TTL in seconds |
 | `prefix` | `str` | `"rate"` | Prefix for Redis keys |
-| `identifier` | `Callable` | Client IP | Custom function to identify clients (supports `X-Forwarded-For`) |
+| `identifier` | `Callable` / `str` | Client IP | Custom function or header name (auto-detects Cloudflare, Nginx, ALB, direct IP) |
 | `exclude_paths` | `list[str]` | `None` | List of paths to exclude from rate limiting |
 | `error_detail` | `str` | `"Too many requests"` | Response detail message on 429 |
