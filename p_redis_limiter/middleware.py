@@ -66,7 +66,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if not STARLETTE_AVAILABLE:
             raise ImportError(
                 "Starlette/FastAPI is required to use RateLimitMiddleware. "
-                "Install it with: pip install 'p-redis-limiter[fastapi]'"
+                "Install it with: pip install fastapi"
             )
         super().__init__(app)
 

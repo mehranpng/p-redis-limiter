@@ -15,9 +15,6 @@ A lightweight, fast, and atomic **Token Bucket Rate Limiter** for Python and Fas
 
 ```bash
 pip install git+https://github.com/mehranpng/p-redis-limiter.git
-
-# Or with FastAPI support:
-pip install "p-redis-limiter[fastapi] @ git+https://github.com/mehranpng/p-redis-limiter.git"
 ```
 
 ---
