@@ -75,6 +75,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         on_blocked: Optional[
             Callable[[Request, RateLimitResult], Union[Response, Awaitable[Response]]]
         ] = None,
+        on_redis_error: Union[str, Rate, Iterable[Any]] = "raise",
+        fallback_rate: Optional[Union[Rate, str, tuple[int, Union[int, float]], Iterable[Any]]] = None,
+        redis_retry_interval: float = 1.0,
     ) -> None:
         if not STARLETTE_AVAILABLE:
             raise ImportError(
@@ -93,6 +96,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 window=window,
                 prefix=prefix,
                 ttl=ttl,
+                on_redis_error=on_redis_error,
+                fallback_rate=fallback_rate,
+                redis_retry_interval=redis_retry_interval,
             )
 
         if callable(identifier):

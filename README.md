@@ -115,6 +115,49 @@ if not result.allowed:
     print(f"Blocked! Retry after {result.retry_after}s")
 ```
 
+### 6. Redis Failure & Fallback Handling
+
+Configure what happens if Redis becomes unreachable:
+
+* **Default (`on_redis_error="raise"`):** Raises the Redis connection exception (unhandled errors return HTTP 500).
+* **Fail-Open (`on_redis_error="allow"` or `"pass"`):** Bypasses rate limiting and allows requests through so your service stays online.
+* **In-Memory Fallback (`on_redis_error="local"`):** Seamlessly applies an in-memory token bucket rate limit until Redis is back up. Once Redis is reachable again, it automatically recovers and switches back to Redis.
+
+```python
+# Option A: Allow requests through if Redis goes down (fail-open)
+app.add_middleware(
+    RateLimitMiddleware,
+    redis=r,
+    rates="40/m",
+    on_redis_error="allow",
+)
+
+# Option B: Fallback to in-memory rate limiting using the same rate rules
+app.add_middleware(
+    RateLimitMiddleware,
+    redis=r,
+    rates="40/m",
+    on_redis_error="local",
+)
+
+# Option C: Fallback to in-memory rate limiting with a specific/stricter rate
+app.add_middleware(
+    RateLimitMiddleware,
+    redis=r,
+    rates="40/m",
+    on_redis_error="local",
+    fallback_rate="10/m",
+)
+
+# Also works with RateLimiter / Depends:
+login_limiter = RateLimiter(
+    r,
+    "5/m",
+    on_redis_error="local",
+    fallback_rate="2/m",
+)
+```
+
 ## Options
 
 | Parameter | Type | Default | Description |
@@ -126,3 +169,6 @@ if not result.allowed:
 | `identifier` | `Callable` / `str` | Client IP | Custom function or header name (auto-detects Cloudflare, Nginx, ALB, direct IP) |
 | `exclude_paths` | `list[str]` | `None` | List of paths to exclude from rate limiting |
 | `error_detail` | `str` | `"Too many requests"` | Response detail message on 429 |
+| `on_redis_error` | `str` / `Rate` | `"raise"` | Behavior when Redis fails: `"raise"`, `"allow"` (or `"pass"`), or `"local"` |
+| `fallback_rate` | `Rate` / `str` / `list` | `None` | Custom rate limit rule to use when falling back to `"local"` mode |
+| `redis_retry_interval` | `float` | `1.0` | Seconds to wait before re-probing Redis after a failure |
